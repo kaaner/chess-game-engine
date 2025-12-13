@@ -15,7 +15,7 @@ export default class GameState {
         return this.board;
     }
 
-    makeMove(fromRow, fromCol, toRow, toCol) {
+    makeMove(fromRow, fromCol, toRow, toCol, promotionType = null) {
         if (this.gameOver) return false;
 
         const piece = this.board.getPiece(fromRow, fromCol);
@@ -30,9 +30,26 @@ export default class GameState {
 
         if (!isLegal) return false;
 
+        // Check for promotion
+        if (piece.type === 'p') { // Hardcoded 'p' equivalent to PieceType.PAWN which needs import or just use string
+            const isLastRank = (piece.color === 'w' && toRow === 0) || (piece.color === 'b' && toRow === 7);
+            if (isLastRank) {
+                if (!promotionType) {
+                    return 'PROMOTION_NEEDED';
+                }
+            }
+        }
+
         // Execute move
         this.board.movePiece(fromRow, fromCol, toRow, toCol);
-        this.history.push({ from: { r: fromRow, c: fromCol }, to: { r: toRow, c: toCol }, piece: piece });
+
+        // Apply promotion
+        if (piece.type === 'p' && promotionType) {
+            const promotedPiece = this.board.getPiece(toRow, toCol);
+            promotedPiece.type = promotionType;
+        }
+
+        this.history.push({ from: { r: fromRow, c: fromCol }, to: { r: toRow, c: toCol }, piece: piece, promotion: promotionType });
 
         // Switch turn
         this.switchTurn();

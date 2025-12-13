@@ -58,14 +58,19 @@ export default class ChessView {
             }
 
             // Attempt move
-            const success = this.gameState.makeMove(
+            const result = this.gameState.makeMove(
                 this.selectedSquare.row,
                 this.selectedSquare.col,
                 row,
                 col
             );
 
-            if (success) {
+            if (result === 'PROMOTION_NEEDED') {
+                this.showPromotionDialog(this.selectedSquare.row, this.selectedSquare.col, row, col);
+                return;
+            }
+
+            if (result) {
                 this.updatePieces();
                 this.deselectSquare();
                 // Sound or status update here
@@ -154,5 +159,45 @@ export default class ChessView {
                 }
             }
         }
+    }
+
+    showPromotionDialog(fromRow, fromCol, toRow, toCol) {
+        // Create modal container
+        const modal = document.createElement('div');
+        modal.classList.add('promotion-modal');
+
+        const pieces = ['q', 'r', 'b', 'n']; // Queen, Rook, Bishop, Knight
+        const color = this.gameState.turn;
+
+        pieces.forEach(type => {
+            const btn = document.createElement('div');
+            btn.classList.add('promotion-piece');
+            btn.classList.add(color === 'w' ? 'white' : 'black');
+
+            // Map types to unicode
+            const mapping = {
+                'q': color === 'w' ? '♕' : '♛',
+                'r': color === 'w' ? '♖' : '♜',
+                'b': color === 'w' ? '♗' : '♝',
+                'n': color === 'w' ? '♘' : '♞'
+            };
+            btn.textContent = mapping[type];
+
+            btn.addEventListener('click', () => {
+                this.gameState.makeMove(fromRow, fromCol, toRow, toCol, type);
+                this.updatePieces();
+                this.deselectSquare();
+
+                // Update status
+                const statusEl = document.getElementById('status');
+                if (statusEl) statusEl.innerText = `${this.gameState.turn === 'w' ? 'White' : 'Black'} to move`;
+
+                modal.remove();
+            });
+
+            modal.appendChild(btn);
+        });
+
+        this.element.appendChild(modal);
     }
 }
