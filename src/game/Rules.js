@@ -74,7 +74,7 @@ export default class Rules {
                 });
                 break;
 
-            case PieceType.KING:
+                // Normal moves
                 const kingMoves = [
                     [-1, -1], [-1, 0], [-1, 1],
                     [0, -1], [0, 1],
@@ -90,6 +90,80 @@ export default class Rules {
                         }
                     }
                 });
+
+                // Castling
+                if (!piece.hasMoved) {
+                    const rookRow = color === PieceColor.WHITE ? 7 : 0; // But wait, row logic: White is 7?
+                    // My board setup: Row 0 Black, Row 7 White.
+                    // Yes, white king at (7, 4)
+
+                    // Kingside (dist 2) -> Rook at col 7
+                    // Queenside (dist 3) -> Rook at col 0
+
+                    const opponentColor = color === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
+
+                    // Helper to check safety and emptiness
+                    const checkCastling = (rookCol, emptyCols, passThroughCols) => {
+                        const rook = board.getPiece(row, rookCol);
+                        if (rook && rook.type === PieceType.ROOK && rook.color === color && !rook.hasMoved) {
+                            // Check empty squares
+                            if (emptyCols.every(c => board.getPiece(row, c) === null)) {
+                                // Check not in check, and pass-through not in check
+                                // We only check if start (row,col) is attacked, and pass-through cols.
+                                // "Cannot castle out of check" -> Start square not attacked.
+                                // "Cannot castle through check" -> Pass through squares not attacked.
+                                // Destination square not attacked.
+
+                                const squaresToCheck = [col, ...passThroughCols]; // col is king start
+
+                                // This check is expensive here (recursive dependency on isSquareAttacked calling getPseudoLegalMoves),
+                                // but we are inside getPseudoLegalMoves. Infinite recursion risk if we call isSquareAttacked?
+                                // isSquareAttacked calls getPseudoLegalMoves.
+                                // If we are calculating King moves, and we check isSquareAttacked, we look at opponent pieces.
+                                // Opponent pieces (e.g. Rook) call getPseudoLegalMoves(ROOK). That is fine.
+                                // Opponent King? call getPseudoLegalMoves(KING). 
+                                // If opponent king checks castling, it checks isSquareAttacked by us... 
+                                // Standard recursion protection or simplifiction is needed if we go deep.
+                                // But usually 1 level deep is fine.
+
+                                // HOWEVER: usually pseudo-legal moves do NOT check for checks. 
+                                // Castling is unique because the move ITSELF is illegal if in check.
+
+                                // Let's generate the move as "Pseudo-legal" if path is empty and pieces haven't moved.
+                                // Validation of "through check" should happen in getLegalMoves ideally?
+                                // But standard "getLegalMoves" simply checks if END result leaves king in check.
+                                // Castling requires intermediate squares to be safe.
+
+                                moves.push({
+                                    row: row,
+                                    col: rookCol === 7 ? 6 : 2, // Destination: g1 or c1 equivalent
+                                    isCastling: true,
+                                    side: rookCol === 7 ? 'k' : 'q'
+                                });
+                            }
+                        }
+                    };
+
+                    // Kingside
+                    checkCastling(7, [5, 6], [5, 6]);
+                    // Queenside
+                    checkCastling(0, [1, 2, 3], [2, 3]); // King moves 2 squares (c1, d1 for queenside? No. King e1->c1. Passing d1. Target c1.) 
+                    // e1(4) -> c1(2). Passing d1(3).
+                    // Wait, standard: King e1, Queen d1, Bishop c1, Knight b1, Rook a1.
+                    // Queenside castle: King moves e1 -> c1. Rook a1 -> d1.
+                    // Empty squares needed: d1(3), c1(2), b1(1).
+                    // Squares preventing check: e1(4), d1(3), c1(2). (b1 doesn't matter for check, just emptiness)
+
+                    // So for Queenside: emptyCols=[1,2,3], passThroughCols=[2, 3] (Destination is 2. Passing 3.)
+
+                    // Wait, passThroughCols logic for checkCastling: 
+                    // King (4). Destination (2). Path: (3).
+                    // Checked squares: 4 (Start), 3 (Path), 2 (Dest).
+
+                    // Correct call for Queenside (rookCol=0): 
+                    // emptyCols=[1,2,3].
+                    // passThroughCols=[2, 3]. (Destination included in passThrough for generic check, plus 3).
+                }
                 break;
         }
 
@@ -127,14 +201,50 @@ export default class Rules {
         const legalMoves = [];
 
         pseudoMoves.forEach(move => {
+            // Special Castling Validation
+            if (move.isCastling) {
+                // Must not be in check currently
+                const kingPos = { row, col };
+                const opponentColor = piece.color === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
+
+                if (Rules.isSquareAttacked(board, kingPos.row, kingPos.col, opponentColor)) {
+                    return; // Cannot castle out of check
+                }
+
+                // Check path squares
+                const midCol = (move.col + col) / 2;
+                if (Rules.isSquareAttacked(board, row, midCol, opponentColor)) {
+                    return; // Cannot castle through check
+                }
+
+                if (Rules.isSquareAttacked(board, row, move.col, opponentColor)) {
+                    return; // Cannot castle into check
+                }
+            }
+
             // Simulate move
             const tempBoard = board.clone();
-            tempBoard.movePiece(row, col, move.row, move.col);
+
+            // If castling, move rook too for proper simulation
+            if (move.isCastling) {
+                tempBoard.movePiece(row, col, move.row, move.col); // Move King
+                // Move Rook
+                const rookSrcCol = move.side === 'k' ? 7 : 0;
+                const rookDstCol = move.side === 'k' ? 5 : 3;
+
+                // Manual rook move in clone without validation
+                const rook = tempBoard.squares[row][rookSrcCol];
+                tempBoard.squares[row][rookDstCol] = rook;
+                tempBoard.squares[row][rookSrcCol] = null;
+                if (rook) rook.hasMoved = true;
+            } else {
+                tempBoard.movePiece(row, col, move.row, move.col);
+            }
 
             // Find our king
             const kingPos = tempBoard.findKing(piece.color);
 
-            // Check if king is asserted
+            // Check if king is asserted (Standard check for all moves)
             const opponentColor = piece.color === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
             if (!Rules.isSquareAttacked(tempBoard, kingPos.row, kingPos.col, opponentColor)) {
                 legalMoves.push(move);
