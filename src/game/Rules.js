@@ -1,7 +1,8 @@
 import { PieceType, PieceColor } from './Piece.js';
 
 export default class Rules {
-    static getPseudoLegalMoves(board, piece, row, col, enPassantTarget = null) {
+    static getPseudoLegalMoves(board, piece, row, col, context = {}) {
+        const { enPassantTarget, castlingEnabled = true, enPassantEnabled = true } = context;
         const moves = [];
         const color = piece.color;
         const direction = color === PieceColor.WHITE ? -1 : 1;
@@ -29,7 +30,7 @@ export default class Rules {
                             moves.push({ row: targetRow, col: targetCol });
                         }
                         // En Passant
-                        if (enPassantTarget && enPassantTarget.row === targetRow && enPassantTarget.col === targetCol) {
+                        if (enPassantEnabled && enPassantTarget && enPassantTarget.row === targetRow && enPassantTarget.col === targetCol) {
                             moves.push({ row: targetRow, col: targetCol, isEnPassant: true });
                         }
                     }
@@ -101,7 +102,7 @@ export default class Rules {
                 });
 
                 // Castling
-                if (!piece.hasMoved) {
+                if (castlingEnabled && !piece.hasMoved) {
                     const rookRow = color === PieceColor.WHITE ? 7 : 0; // But wait, row logic: White is 7?
                     // My board setup: Row 0 Black, Row 7 White.
                     // Yes, white king at (7, 4)
@@ -202,11 +203,11 @@ export default class Rules {
         return false;
     }
 
-    static getLegalMoves(board, row, col, enPassantTarget = null) {
+    static getLegalMoves(board, row, col, context = {}) {
         const piece = board.getPiece(row, col);
         if (!piece) return [];
 
-        const pseudoMoves = Rules.getPseudoLegalMoves(board, piece, row, col, enPassantTarget);
+        const pseudoMoves = Rules.getPseudoLegalMoves(board, piece, row, col, context);
         const legalMoves = [];
 
         pseudoMoves.forEach(move => {
