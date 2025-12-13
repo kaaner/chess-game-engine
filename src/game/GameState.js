@@ -11,6 +11,7 @@ export default class GameState {
         this.gameOver = false;
         this.winner = null;
         this.clock = null;
+        this.enPassantTarget = null; // { row, col } or null
     }
 
     initClock(minutes, increment, onTick) {
@@ -31,7 +32,7 @@ export default class GameState {
         if (piece.color !== this.turn) return false;
 
         // Validate move
-        const legalMoves = Rules.getLegalMoves(this.board, fromRow, fromCol);
+        const legalMoves = Rules.getLegalMoves(this.board, fromRow, fromCol, this.enPassantTarget);
         const move = legalMoves.find(m => m.row === toRow && m.col === toCol);
 
         if (!move) return false;
@@ -56,6 +57,24 @@ export default class GameState {
             const rookDstCol = move.side === 'k' ? 5 : 3;
             this.board.movePiece(row, rookSrcCol, row, rookDstCol);
         }
+
+        // Handle En Passant Capture
+        if (move.isEnPassant) {
+            // Captured pawn is at {fromRow, toCol}
+            this.board.squares[fromRow][toCol] = null;
+        }
+
+        // Set En Passant Target for NEXT turn
+        // If pawn moved 2 squares
+        if (piece.type === 'p' && Math.abs(toRow - fromRow) === 2) {
+            this.enPassantTarget = {
+                row: (fromRow + toRow) / 2,
+                col: fromCol
+            };
+        } else {
+            this.enPassantTarget = null;
+        }
+
 
         // Apply promotion
         if (piece.type === 'p' && promotionType) {
