@@ -100,6 +100,25 @@ export default class ChessView {
                 // Interaction
                 square.addEventListener('click', () => this.handleSquareClick(i, j));
 
+                // Coordinates (Chess.com style: Rank on left file, File on bottom rank)
+                // Rank (1-8): Show on left-most column (j === 0). 
+                // Rows 0-7 correspond to Ranks 8-1.
+                if (j === 0) {
+                    const rankLabel = document.createElement('div');
+                    rankLabel.classList.add('coord-rank');
+                    rankLabel.innerText = 8 - i; // Row 0 -> 8, Row 7 -> 1
+                    square.appendChild(rankLabel);
+                }
+
+                // File (a-h): Show on bottom-most row (i === 7).
+                // Cols 0-7 correspond to Files a-h.
+                if (i === 7) {
+                    const fileLabel = document.createElement('div');
+                    fileLabel.classList.add('coord-file');
+                    fileLabel.innerText = String.fromCharCode(97 + j); // 0 -> 'a'
+                    square.appendChild(fileLabel);
+                }
+
                 // Color logic: (row + col) % 2 === 0 -> Light, else Dark
                 // But usually, a8 (0,0) is white? No, a8 is white. 
                 // 0,0 is a8. 0+0=0 even -> light. Correct.
