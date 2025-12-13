@@ -14,10 +14,45 @@ export default class GameState {
         this.clock = null;
         this.enPassantTarget = null; // { row, col } or null
         this.settings = new GameSettings();
+        this.isPaused = false;
     }
 
     initClock(minutes, increment, onTick) {
         this.clock = new GameClock(minutes, increment, onTick);
+    }
+
+    resetGame() {
+        this.board.resetBoard();
+        this.turn = PieceColor.WHITE;
+        this.history = [];
+        this.gameOver = false;
+        this.winner = null;
+        this.enPassantTarget = null;
+        this.isPaused = false;
+
+        if (this.clock) {
+            this.clock.reset(10); // Hardcoded 10 min for now, should perhaps store initial config
+        }
+    }
+
+    togglePause() {
+        if (this.gameOver) return;
+        this.isPaused = !this.isPaused;
+
+        if (this.clock) {
+            if (this.isPaused) {
+                this.clock.stop();
+            } else {
+                // Resume
+                // If game hasn't started (activeColor null), don't start clock yet? 
+                // Actually if null, start('w') might be premature if we wait for first move.
+                // But usually clock starts on first move? 
+                // Let's assume clock only runs if activeColor is set.
+                if (this.clock.activeColor) {
+                    this.clock.start(this.clock.activeColor);
+                }
+            }
+        }
     }
 
     getBoard() {
@@ -25,7 +60,7 @@ export default class GameState {
     }
 
     makeMove(fromRow, fromCol, toRow, toCol, promotionType = null) {
-        if (this.gameOver) return false;
+        if (this.gameOver || this.isPaused) return false;
 
         const piece = this.board.getPiece(fromRow, fromCol);
 

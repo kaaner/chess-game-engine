@@ -146,6 +146,33 @@ body {
   font-size: 1.1rem;
 }
 
+.control-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.control-actions button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  transition: transform 0.2s;
+}
+
+.control-actions button:hover {
+  transform: scale(1.1);
+  color: var(--board-light);
+}
+
+.chess-board.paused {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(100%);
+}
+
 .settings-actions {
   margin-top: 2rem;
   text-align: right;

@@ -25,12 +25,52 @@ export default class ChessView {
             <div id="clock-black" class="clock">10:00</div>
             <div id="status">White to move</div>
             <div id="clock-white" class="clock">10:00</div>
-            <button id="settings-btn" title="Settings">⚙️</button>
+            <div class="control-actions">
+                <button id="pause-btn" title="Pause Game">⏸️</button>
+                <button id="restart-btn" title="Restart Game">🔄</button>
+                <button id="settings-btn" title="Settings">⚙️</button>
+            </div>
         `;
         controls.innerHTML = ''; // Start fresh
         controls.appendChild(clockContainer);
 
         document.getElementById('settings-btn').addEventListener('click', () => this.showSettingsDialog());
+        document.getElementById('pause-btn').addEventListener('click', () => this.handlePauseToggle());
+        document.getElementById('restart-btn').addEventListener('click', () => this.handleRestart());
+    }
+
+    handlePauseToggle() {
+        this.gameState.togglePause();
+        const btn = document.getElementById('pause-btn');
+        btn.innerText = this.gameState.isPaused ? '▶️' : '⏸️';
+
+        const statusEl = document.getElementById('status');
+        if (this.gameState.isPaused) {
+            statusEl.innerText = "Paused";
+            this.element.classList.add('paused');
+        } else {
+            statusEl.innerText = `${this.gameState.turn === 'w' ? 'White' : 'Black'} to move`;
+            this.element.classList.remove('paused');
+        }
+    }
+
+    handleRestart() {
+        if (confirm('Are you sure you want to restart the game?')) {
+            this.gameState.resetGame();
+
+            // Clean UI
+            this.deselectSquare();
+            this.updatePieces();
+
+            // Reset Clock UI
+            this.updateClockUI(600, 600); // 10 mins default
+
+            const btn = document.getElementById('pause-btn');
+            btn.innerText = '⏸️';
+            this.element.classList.remove('paused');
+
+            document.getElementById('status').innerText = 'White to move';
+        }
     }
 
     updateClockUI(timeWhite, timeBlack) {
