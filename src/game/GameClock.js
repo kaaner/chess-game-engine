@@ -11,7 +11,7 @@ export default class GameClock {
     }
 
     start(color) {
-        if (this.activeColor === color) return;
+        if (this.activeColor === color && this.interval) return;
 
         this.stop();
         this.activeColor = color;
@@ -62,6 +62,14 @@ export default class GameClock {
             this.start('w');
         }
         // Immediate update to show increment
+        if (this.onTick) this.onTick(this.timeWhite, this.timeBlack);
+    }
+
+    reset(minutes) {
+        this.stop();
+        this.timeWhite = minutes * 60;
+        this.timeBlack = minutes * 60;
+        this.activeColor = null;
         if (this.onTick) this.onTick(this.timeWhite, this.timeBlack);
     }
 }
