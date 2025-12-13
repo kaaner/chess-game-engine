@@ -62,6 +62,10 @@ body {
   cursor: pointer;
 }
 
+.square.selected {
+  background-color: var(--highlight) !important;
+}
+
 .piece {
   cursor: grab;
   transition: transform 0.2s;

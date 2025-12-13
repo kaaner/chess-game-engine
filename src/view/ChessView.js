@@ -4,6 +4,7 @@ export default class ChessView {
         this.gameState = gameState;
         this.squares = []; // DOM elements 8x8
 
+        this.selectedSquare = null; // {row, col}
         this.renderBoard();
     }
 
@@ -19,6 +20,9 @@ export default class ChessView {
                 square.dataset.row = i;
                 square.dataset.col = j;
 
+                // Interaction
+                square.addEventListener('click', () => this.handleSquareClick(i, j));
+
                 // Color logic: (row + col) % 2 === 0 -> Light, else Dark
                 // But usually, a8 (0,0) is white? No, a8 is white. 
                 // 0,0 is a8. 0+0=0 even -> light. Correct.
@@ -32,6 +36,70 @@ export default class ChessView {
             this.squares.push(row);
         }
         this.updatePieces();
+    }
+
+    handleSquareClick(row, col) {
+        const piece = this.gameState.getBoard().getPiece(row, col);
+        const isMyPiece = piece && piece.color === this.gameState.turn;
+
+        if (this.selectedSquare) {
+            // If clicking invalid square or same square, deselect
+            // If clicking valid move, execute
+            // If clicking own piece (different one), change selection
+
+            if (this.selectedSquare.row === row && this.selectedSquare.col === col) {
+                this.deselectSquare();
+                return;
+            }
+
+            if (isMyPiece) {
+                this.selectSquare(row, col);
+                return;
+            }
+
+            // Attempt move
+            const success = this.gameState.makeMove(
+                this.selectedSquare.row,
+                this.selectedSquare.col,
+                row,
+                col
+            );
+
+            if (success) {
+                this.updatePieces();
+                this.deselectSquare();
+                // Sound or status update here
+                const statusEl = document.getElementById('status');
+                if (statusEl) statusEl.innerText = `${this.gameState.turn === 'w' ? 'White' : 'Black'} to move`;
+                if (this.gameState.gameOver) {
+                    if (statusEl) statusEl.innerText = `Game Over! Winner: ${this.gameState.winner}`;
+                }
+            } else {
+                // Invalid move
+                this.deselectSquare();
+            }
+
+        } else {
+            // No selection, select if own piece
+            if (isMyPiece) {
+                this.selectSquare(row, col);
+            }
+        }
+    }
+
+    selectSquare(row, col) {
+        if (this.selectedSquare) {
+            this.squares[this.selectedSquare.row][this.selectedSquare.col].classList.remove('selected');
+        }
+        this.selectedSquare = { row, col };
+        this.squares[row][col].classList.add('selected');
+    }
+
+    deselectSquare() {
+        if (this.selectedSquare) {
+            this.squares[this.selectedSquare.row][this.selectedSquare.col].classList.remove('selected');
+        }
+        this.selectedSquare = null;
     }
 
     updatePieces() {
