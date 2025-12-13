@@ -288,3 +288,29 @@ body {
   background-color: var(--board-dark);
   color: var(--board-light);
 }
+
+.coord-rank {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  pointer-events: none;
+  /* Color depends on square color, but typically contrast. 
+       If square is light, rank is dark color. If square dark, rank light.
+       Parent .square sets text color automatically via .square.light/dark rules?
+       Yes:
+       .square.light { color: var(--board-dark); }
+       .square.dark { color: var(--board-light); }
+       So inheriting color works perfectly.
+    */
+}
+
+.coord-file {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  pointer-events: none;
+}
