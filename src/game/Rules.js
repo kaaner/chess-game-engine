@@ -1,7 +1,7 @@
 import { PieceType, PieceColor } from './Piece.js';
 
 export default class Rules {
-    static getPseudoLegalMoves(board, piece, row, col) {
+    static getPseudoLegalMoves(board, piece, row, col, enPassantTarget = null) {
         const moves = [];
         const color = piece.color;
         const direction = color === PieceColor.WHITE ? -1 : 1;
@@ -20,9 +20,18 @@ export default class Rules {
                 }
                 // Captures
                 [[direction, -1], [direction, 1]].forEach(([r, c]) => {
-                    const targetPiece = board.getPiece(row + r, col + c);
-                    if (targetPiece && targetPiece.color !== color) {
-                        moves.push({ row: row + r, col: col + c });
+                    const targetRow = row + r;
+                    const targetCol = col + c;
+
+                    if (Rules.isInside(targetRow, targetCol)) {
+                        const targetPiece = board.getPiece(targetRow, targetCol);
+                        if (targetPiece && targetPiece.color !== color) {
+                            moves.push({ row: targetRow, col: targetCol });
+                        }
+                        // En Passant
+                        if (enPassantTarget && enPassantTarget.row === targetRow && enPassantTarget.col === targetCol) {
+                            moves.push({ row: targetRow, col: targetCol, isEnPassant: true });
+                        }
                     }
                 });
                 break;
@@ -193,11 +202,11 @@ export default class Rules {
         return false;
     }
 
-    static getLegalMoves(board, row, col) {
+    static getLegalMoves(board, row, col, enPassantTarget = null) {
         const piece = board.getPiece(row, col);
         if (!piece) return [];
 
-        const pseudoMoves = Rules.getPseudoLegalMoves(board, piece, row, col);
+        const pseudoMoves = Rules.getPseudoLegalMoves(board, piece, row, col, enPassantTarget);
         const legalMoves = [];
 
         pseudoMoves.forEach(move => {
@@ -237,6 +246,13 @@ export default class Rules {
                 tempBoard.squares[row][rookDstCol] = rook;
                 tempBoard.squares[row][rookSrcCol] = null;
                 if (rook) rook.hasMoved = true;
+            } else if (move.isEnPassant) {
+                tempBoard.movePiece(row, col, move.row, move.col);
+                // Remove the captured pawn (behind the move destination)
+                // If white moves up (-1), captured pawn was at (row, col+diff). 
+                // Destination is (row-1, col+diff). 
+                // Actually simpler: captured piece is at (row, move.col)
+                tempBoard.squares[row][move.col] = null;
             } else {
                 tempBoard.movePiece(row, col, move.row, move.col);
             }
