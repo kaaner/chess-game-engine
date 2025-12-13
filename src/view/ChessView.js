@@ -89,10 +89,26 @@ export default class ChessView {
 
     selectSquare(row, col) {
         if (this.selectedSquare) {
-            this.squares[this.selectedSquare.row][this.selectedSquare.col].classList.remove('selected');
+            this.deselectSquare();
         }
         this.selectedSquare = { row, col };
         this.squares[row][col].classList.add('selected');
+
+        // Highlight valid moves
+        import('../game/Rules.js').then(module => {
+            const Rules = module.default;
+            // Ideally GameState should handle this dependency, but for now importing here is quick
+            const legalMoves = Rules.getLegalMoves(this.gameState.getBoard(), row, col);
+
+            legalMoves.forEach(move => {
+                const square = this.squares[move.row][move.col];
+                square.classList.add('highlight-move');
+                // Optional: Add a visual indicator dot
+                const dot = document.createElement('div');
+                dot.classList.add('move-hint');
+                square.appendChild(dot);
+            });
+        });
     }
 
     deselectSquare() {
@@ -100,6 +116,14 @@ export default class ChessView {
             this.squares[this.selectedSquare.row][this.selectedSquare.col].classList.remove('selected');
         }
         this.selectedSquare = null;
+
+        // Clear highlights
+        const hints = this.element.querySelectorAll('.highlight-move');
+        hints.forEach(el => {
+            el.classList.remove('highlight-move');
+            const dot = el.querySelector('.move-hint');
+            if (dot) dot.remove();
+        });
     }
 
     updatePieces() {
