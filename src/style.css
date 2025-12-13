@@ -34,7 +34,37 @@ body {
 }
 
 #chess-board {
-  width: 600px; /* simple fixed size for now, will make responsive */
+  width: 600px;
   height: 600px;
-  background: var(--board-dark);
+}
+
+.chess-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  width: 100%;
+  height: 100%;
+  border: 5px solid #333;
+  box-sizing: content-box;
+  /* Ensure border doesn't shrink board content if width/height fixed? actually border-box is usually better but let's stick to simple first */
+}
+
+.square {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  user-select: none;
+}
+
+.square.light {
+  background-color: var(--board-light);
+  color: var(--board-dark);
+}
+
+.square.dark {
+  background-color: var(--board-dark);
+  color: var(--board-light);
 }
