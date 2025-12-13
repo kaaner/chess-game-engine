@@ -9,10 +9,27 @@ export default class ChessView {
         // Setup controls (clock + settings)
         this.setupControlsUI();
 
+        // Setup History Panel
+        this.setupHistoryUI();
+
         this.renderBoard();
 
         // Init clock
         this.gameState.initClock(10, 0, (w, b) => this.updateClockUI(w, b));
+    }
+
+    setupHistoryUI() {
+        const app = document.getElementById('app');
+        const historyContainer = document.createElement('div');
+        historyContainer.id = 'history-container';
+        historyContainer.innerHTML = `
+            <h3>Move History</h3>
+            <div id="move-list"></div>
+        `;
+
+        // Insert before controls
+        const controls = document.getElementById('controls');
+        app.insertBefore(historyContainer, controls);
     }
 
     setupControlsUI() {
@@ -61,6 +78,7 @@ export default class ChessView {
             // Clean UI
             this.deselectSquare();
             this.updatePieces();
+            this.updateHistoryUI(); // Clear history
 
             // Reset Clock UI
             this.updateClockUI(600, 600); // 10 mins default
@@ -168,6 +186,7 @@ export default class ChessView {
 
             if (result) {
                 this.updatePieces();
+                this.updateHistoryUI(); // Update history
                 this.deselectSquare();
                 // Sound or status update here
                 const statusEl = document.getElementById('status');
@@ -347,5 +366,83 @@ export default class ChessView {
         modal.querySelector('#toggle-enpassant').addEventListener('change', () => settings.toggleEnPassant());
 
         modal.querySelector('#close-settings').addEventListener('click', () => modal.remove());
+    }
+
+    updateHistoryUI() {
+        const list = document.getElementById('move-list');
+        if (!list) return;
+
+        list.innerHTML = '';
+        const history = this.gameState.history;
+
+        // Group into pairs (White, Black)
+        for (let i = 0; i < history.length; i += 2) {
+            const moveWhite = history[i];
+            const moveBlack = history[i + 1];
+
+            const moveRow = document.createElement('div');
+            moveRow.classList.add('move-row');
+
+            const num = document.createElement('span');
+            num.classList.add('move-num');
+            num.innerText = `${Math.floor(i / 2) + 1}.`;
+
+            const wMove = document.createElement('span');
+            wMove.classList.add('move-text');
+            wMove.innerText = this.formatMove(moveWhite);
+
+            moveRow.appendChild(num);
+            moveRow.appendChild(wMove);
+
+            if (moveBlack) {
+                const bMove = document.createElement('span');
+                bMove.classList.add('move-text');
+                bMove.innerText = this.formatMove(moveBlack);
+                moveRow.appendChild(bMove);
+            }
+
+            list.appendChild(moveRow);
+        }
+
+        // Auto scroll to bottom
+        list.scrollTop = list.scrollHeight;
+    }
+
+    formatMove(move) {
+        // Simple Algebraic Notation (simplified)
+        // Ideally needs to handle disambiguation (e.g. Nbd7), checks (+), mates (#)
+        // For now: [Piece][ToCol][ToRow]
+        // E.g. e4, Nf3, Bxc5
+
+        const pieceMap = { 'p': '', 'n': 'N', 'b': 'B', 'r': 'R', 'q': 'Q', 'k': 'K' };
+
+        let text = '';
+
+        // Castle
+        // We don't have isCastling flag in history yet easily accessible?
+        // GameState history stores { from: {r,c}, to: {r,c}, piece: object, promotion: type }
+        // We can infer castling if King moves > 1 file
+        if (move.piece.type === 'k' && Math.abs(move.to.c - move.from.c) > 1) {
+            return move.to.c > move.from.c ? 'O-O' : 'O-O-O';
+        }
+
+        text += pieceMap[move.piece.type];
+
+        // Capture? 
+        // History doesn't store 'captured' flag explicitly in the simple object pushed to history in GameState.js
+        // We might need to check if a piece was there? But we don't have past board state easily here.
+        // For now, let's just show destination.
+        // If pawn capture, we usually show file (e.g. exd5).
+
+        const userFriendlyCol = String.fromCharCode(97 + move.to.c);
+        const userFriendlyRow = 8 - move.to.r;
+
+        text += userFriendlyCol + userFriendlyRow;
+
+        if (move.promotion) {
+            text += '=' + move.promotion.toUpperCase();
+        }
+
+        return text;
     }
 }
