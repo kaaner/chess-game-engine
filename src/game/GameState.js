@@ -1,3 +1,4 @@
+import GameSettings from './GameSettings.js';
 import GameClock from './GameClock.js';
 import Board from './Board.js';
 import Rules from './Rules.js';
@@ -12,6 +13,7 @@ export default class GameState {
         this.winner = null;
         this.clock = null;
         this.enPassantTarget = null; // { row, col } or null
+        this.settings = new GameSettings();
     }
 
     initClock(minutes, increment, onTick) {
@@ -31,8 +33,15 @@ export default class GameState {
         if (!piece) return false;
         if (piece.color !== this.turn) return false;
 
+        // Context for rules
+        const rulesContext = {
+            enPassantTarget: this.enPassantTarget,
+            castlingEnabled: this.settings.castlingEnabled,
+            enPassantEnabled: this.settings.enPassantEnabled
+        };
+
         // Validate move
-        const legalMoves = Rules.getLegalMoves(this.board, fromRow, fromCol, this.enPassantTarget);
+        const legalMoves = Rules.getLegalMoves(this.board, fromRow, fromCol, rulesContext);
         const move = legalMoves.find(m => m.row === toRow && m.col === toCol);
 
         if (!move) return false;
@@ -108,12 +117,18 @@ export default class GameState {
         const currentTurnColor = this.turn;
         let hasLegalMoves = false;
 
+        const rulesContext = {
+            enPassantTarget: this.enPassantTarget,
+            castlingEnabled: this.settings.castlingEnabled,
+            enPassantEnabled: this.settings.enPassantEnabled
+        };
+
         // Iterate all pieces of current turn
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 const p = this.board.getPiece(i, j);
                 if (p && p.color === currentTurnColor) {
-                    const moves = Rules.getLegalMoves(this.board, i, j);
+                    const moves = Rules.getLegalMoves(this.board, i, j, rulesContext);
                     if (moves.length > 0) {
                         hasLegalMoves = true;
                         break;

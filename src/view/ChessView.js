@@ -6,8 +6,8 @@ export default class ChessView {
 
         this.selectedSquare = null; // {row, col}
 
-        // Setup clock display
-        this.setupClockUI();
+        // Setup controls (clock + settings)
+        this.setupControlsUI();
 
         this.renderBoard();
 
@@ -15,7 +15,7 @@ export default class ChessView {
         this.gameState.initClock(10, 0, (w, b) => this.updateClockUI(w, b));
     }
 
-    setupClockUI() {
+    setupControlsUI() {
         const controls = document.getElementById('controls');
         if (!controls) return;
 
@@ -25,9 +25,12 @@ export default class ChessView {
             <div id="clock-black" class="clock">10:00</div>
             <div id="status">White to move</div>
             <div id="clock-white" class="clock">10:00</div>
+            <button id="settings-btn" title="Settings">⚙️</button>
         `;
         controls.innerHTML = ''; // Start fresh
         controls.appendChild(clockContainer);
+
+        document.getElementById('settings-btn').addEventListener('click', () => this.showSettingsDialog());
     }
 
     updateClockUI(timeWhite, timeBlack) {
@@ -233,5 +236,57 @@ export default class ChessView {
         });
 
         this.element.appendChild(modal);
+    }
+
+    showSettingsDialog() {
+        const modal = document.createElement('div');
+        modal.classList.add('settings-modal');
+
+        const settings = this.gameState.settings;
+
+        modal.innerHTML = `
+            <div class="settings-content">
+                <h2>Game Settings</h2>
+                
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="toggle-castling" ${settings.castlingEnabled ? 'checked' : ''}>
+                        Allow Castling
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <label>
+                        <input type="checkbox" id="toggle-enpassant" ${settings.enPassantEnabled ? 'checked' : ''}>
+                        Allow En Passant
+                    </label>
+                </div>
+                
+                <div class="setting-item">
+                    <h3>Promotion Options</h3>
+                    <div class="promotion-options">
+                        ${['q', 'r', 'b', 'n'].map(p => `
+                            <label>
+                                <input type="checkbox" class="promo-option" value="${p}" checked disabled>
+                                ${p.toUpperCase()}
+                            </label>
+                        `).join('')}
+                    </div>
+                    <small>(Configuring allowed pieces coming soon)</small>
+                </div>
+
+                <div class="settings-actions">
+                    <button id="close-settings">Close</button>
+                </div>
+            </div>
+        `;
+
+        this.element.appendChild(modal);
+
+        // Event Listeners
+        modal.querySelector('#toggle-castling').addEventListener('change', () => settings.toggleCastling());
+        modal.querySelector('#toggle-enpassant').addEventListener('change', () => settings.toggleEnPassant());
+
+        modal.querySelector('#close-settings').addEventListener('click', () => modal.remove());
     }
 }
