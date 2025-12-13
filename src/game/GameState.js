@@ -9,6 +9,10 @@ export default class GameState {
         this.board = new Board();
         this.turn = PieceColor.WHITE;
         this.history = []; // Keep track of moves
+        this.capturedPieces = { w: [], b: [] }; // Captured pieces BY color (i.e. 'w' contains pieces white captured? Or pieces captured FROM white?
+        // Usually UI shows "Pieces White has lost" vs "Pieces Black has lost".
+        // Or "Pieces White has captured" (which are Black pieces).
+        // Let's store: { w: [captured white pieces], b: [captured black pieces] }
         this.gameOver = false;
         this.winner = null;
         this.clock = null;
@@ -25,6 +29,7 @@ export default class GameState {
         this.board.resetBoard();
         this.turn = PieceColor.WHITE;
         this.history = [];
+        this.capturedPieces = { w: [], b: [] };
         this.gameOver = false;
         this.winner = null;
         this.enPassantTarget = null;
@@ -92,6 +97,24 @@ export default class GameState {
         }
 
         // Execute move
+        const targetPiece = this.board.getPiece(toRow, toCol); // Check capture BEFORE moving? 
+        // Logic: movePiece overwrites target. So we must get it before.
+        // Wait, movePiece in Board.js:
+        // const piece = this.squares[fromRow][fromCol];
+        // this.squares[toRow][toCol] = piece;
+        // So yes, Board.movePiece overwrites. 
+        // BUT, I'm already looking at GameState.js line 60 (original), 
+        // where `this.board.movePiece` is called.
+        // I need to intercept the capture BEFORE calling movePiece.
+
+        // Wait, current file view might use lines differently.
+        // Let's look at `makeMove` again.
+
+        const capturedPiece = this.board.getPiece(toRow, toCol);
+        if (capturedPiece) {
+            this.capturedPieces[capturedPiece.color].push(capturedPiece.type);
+        }
+
         this.board.movePiece(fromRow, fromCol, toRow, toCol);
 
         // Handle Castling Execution
@@ -132,6 +155,11 @@ export default class GameState {
 
             // Maybe the UI is not updating `fromRow, toCol`?
             // ChessView iterates board. If `squares[fromRow][toCol]` is null, it clears.
+
+            // Captured pawn is at {fromRow, move.col}
+            // En Passant captures a piece of OPPOSITE color to the turn.
+            const opponentColor = this.turn === 'w' ? 'b' : 'w';
+            this.capturedPieces[opponentColor].push('p');
 
             // Let's add logging to verify coordinates.
             console.log('En Passant Execution:', { fromRow, fromCol, toRow, toCol });
