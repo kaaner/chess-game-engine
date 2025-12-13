@@ -84,6 +84,7 @@ export default class Rules {
                 });
                 break;
 
+            case PieceType.KING:
                 // Normal moves
                 const kingMoves = [
                     [-1, -1], [-1, 0], [-1, 1],
