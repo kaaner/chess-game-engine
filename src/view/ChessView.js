@@ -5,7 +5,41 @@ export default class ChessView {
         this.squares = []; // DOM elements 8x8
 
         this.selectedSquare = null; // {row, col}
+
+        // Setup clock display
+        this.setupClockUI();
+
         this.renderBoard();
+
+        // Init clock
+        this.gameState.initClock(10, 0, (w, b) => this.updateClockUI(w, b));
+    }
+
+    setupClockUI() {
+        const controls = document.getElementById('controls');
+        if (!controls) return;
+
+        const clockContainer = document.createElement('div');
+        clockContainer.id = 'clock-container';
+        clockContainer.innerHTML = `
+            <div id="clock-black" class="clock">10:00</div>
+            <div id="status">White to move</div>
+            <div id="clock-white" class="clock">10:00</div>
+        `;
+        controls.innerHTML = ''; // Start fresh
+        controls.appendChild(clockContainer);
+    }
+
+    updateClockUI(timeWhite, timeBlack) {
+        const fmt = (t) => {
+            const m = Math.floor(t / 60);
+            const s = Math.floor(t % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        };
+        const elW = document.getElementById('clock-white');
+        const elB = document.getElementById('clock-black');
+        if (elW) elW.innerText = fmt(timeWhite);
+        if (elB) elB.innerText = fmt(timeBlack);
     }
 
     renderBoard() {

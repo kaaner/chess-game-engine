@@ -1,3 +1,4 @@
+import GameClock from './GameClock.js';
 import Board from './Board.js';
 import Rules from './Rules.js';
 import { PieceColor } from './Piece.js';
@@ -9,6 +10,11 @@ export default class GameState {
         this.history = []; // Keep track of moves
         this.gameOver = false;
         this.winner = null;
+        this.clock = null;
+    }
+
+    initClock(minutes, increment, onTick) {
+        this.clock = new GameClock(minutes, increment, onTick);
     }
 
     getBoard() {
@@ -53,6 +59,10 @@ export default class GameState {
 
         // Switch turn
         this.switchTurn();
+
+        if (this.clock) {
+            this.clock.switchTurn();
+        }
 
         // Update Game Status
         this.updateGameStatus();

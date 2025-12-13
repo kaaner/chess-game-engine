@@ -69,6 +69,33 @@ body {
   gap: 2rem;
 }
 
+#controls {
+  width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+#clock-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px;
+  background: #333;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.5rem;
+}
+
+.clock {
+  padding: 0.5rem 1rem;
+  background: #222;
+  border-radius: 4px;
+  border: 1px solid #444;
+  font-family: monospace;
+}
+
+
 #chess-board {
   width: 600px;
   height: 600px;
@@ -102,10 +129,11 @@ body {
   background-color: var(--highlight) !important;
 }
 
-.square.highlight-move {
-  /* Optional: background hint? */
-  /* background-color: rgba(0, 255, 0, 0.2); */
-}
+
+/* .square.highlight-move {
+   background-color: rgba(0, 255, 0, 0.2); 
+} */
+
 
 .move-hint {
   position: absolute;
