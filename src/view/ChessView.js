@@ -12,12 +12,70 @@ export default class ChessView {
         // Setup History Panel
         this.setupHistoryUI();
 
+        // Setup Captured Pieces Panel
+        this.setupCapturedPiecesUI();
+
         this.renderBoard();
 
         // Init clock
         this.gameState.initClock(10, 0, (w, b) => this.updateClockUI(w, b));
     }
 
+    setupCapturedPiecesUI() {
+        // Create container for captured pieces (Top for White's captures? Or side?)
+        // Standard:
+        // Top Player (Black) - Captured White pieces (Pieces black has won) OR Pieces Black has lost?
+        // Usually: "Material Advantage".
+        // Let's show "Captured by White" (Black pieces) near White clock?
+        // Or "Pieces Lost by Black".
+
+        // Let's do:
+        // Top (Black Side): Show White pieces captured by Black. (Pieces White lost)
+        // Bottom (White Side): Show Black pieces captured by White. (Pieces Black lost)
+
+        const controls = document.getElementById('controls');
+        const boardContainer = document.querySelector('.chess-container'); // Need a better anchor
+
+        // Insert captured-pieces-top before board?
+        // Existing layout: .chess-container -> #controls, #chess-board.
+        // Let's wrap controls and board?
+
+        // Simplest: Add to #controls (which is above board).
+        // But controls has clock.
+        // Let's add specific containers.
+
+        const capturedContainer = document.createElement('div');
+        capturedContainer.id = 'captured-pieces-container';
+        capturedContainer.innerHTML = `
+            <div id="captured-top" class="captured-area"></div>
+            <div id="captured-bottom" class="captured-area"></div>
+        `;
+
+        // Insert between controls and board? Or inside controls?
+        // Controls is flex row.
+        // Let's put it above board, below controls?
+
+        document.getElementById('app').insertBefore(capturedContainer, document.getElementById('chess-board')); // Wait, chess-board is created inside renderBoard? No, it's passed in constructor.
+
+        // Element passed to constructor is used as board container.
+        // In main.js: const view = new ChessView(document.getElementById('chess-board'), gameState);
+        // So this.element IS #chess-board.
+
+        // We want to insert 'capturedContainer' BEFORE this.element, but INSIDE the parent.
+        this.element.parentNode.insertBefore(capturedContainer, this.element);
+
+        // Actually, we want one above (Black lost?) and one below (White lost?).
+        // If we duplicate logic, we can split.
+        // For now, let single container handle both top (opponents captured by me?)
+
+        // Layout:
+        // Controls (Clock)
+        // Captured (Black pieces captured by White) - if White is bottom?
+        // Board
+        // Captured (White pieces captured by Black)
+
+        // Let's stick to simple: One container with top/bottom sections.
+    }
     setupHistoryUI() {
         const app = document.getElementById('app');
         const historyContainer = document.createElement('div');
@@ -406,6 +464,50 @@ export default class ChessView {
 
         // Auto scroll to bottom
         list.scrollTop = list.scrollHeight;
+
+        this.updateCapturedPiecesUI();
+    }
+
+    updateCapturedPiecesUI() {
+        const topArea = document.getElementById('captured-top'); // Pieces White lost (captured by Black) ?
+        const bottomArea = document.getElementById('captured-bottom'); // Pieces Black lost (captured by White) ?
+
+        if (!topArea || !bottomArea) return;
+
+        // Logic: 
+        // If Board is White-Orientation (default):
+        // Top is Black Side. Show pieces Black has captured (White pieces lost).
+        // Bottom is White Side. Show pieces White has captured (Black pieces lost).
+
+        const whiteLost = this.gameState.capturedPieces.w;
+        const blackLost = this.gameState.capturedPieces.b;
+
+        topArea.innerHTML = this.renderCapturedList(whiteLost, 'w');
+        bottomArea.innerHTML = this.renderCapturedList(blackLost, 'b');
+    }
+
+    renderCapturedList(pieces, color) {
+        // Sort pieces by value
+        const values = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
+        const sorted = [...pieces].sort((a, b) => values[a] - values[b]);
+
+        // Render
+        return sorted.map(p => {
+            const symbol = this.getPieceSymbol(p, color);
+            return `<span class="captured-piece ${color}">${symbol}</span>`;
+        }).join('');
+    }
+
+    getPieceSymbol(type, color) {
+        const mapping = {
+            'k': color === 'w' ? '♔' : '♚',
+            'q': color === 'w' ? '♕' : '♛',
+            'r': color === 'w' ? '♖' : '♜',
+            'b': color === 'w' ? '♗' : '♝',
+            'n': color === 'w' ? '♘' : '♞',
+            'p': color === 'w' ? '♙' : '♟'
+        };
+        return mapping[type];
     }
 
     formatMove(move) {
