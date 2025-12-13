@@ -32,9 +32,9 @@ export default class GameState {
 
         // Validate move
         const legalMoves = Rules.getLegalMoves(this.board, fromRow, fromCol);
-        const isLegal = legalMoves.some(m => m.row === toRow && m.col === toCol);
+        const move = legalMoves.find(m => m.row === toRow && m.col === toCol);
 
-        if (!isLegal) return false;
+        if (!move) return false;
 
         // Check for promotion
         if (piece.type === 'p') { // Hardcoded 'p' equivalent to PieceType.PAWN which needs import or just use string
@@ -48,6 +48,14 @@ export default class GameState {
 
         // Execute move
         this.board.movePiece(fromRow, fromCol, toRow, toCol);
+
+        // Handle Castling Execution
+        if (move.isCastling) {
+            const row = fromRow;
+            const rookSrcCol = move.side === 'k' ? 7 : 0;
+            const rookDstCol = move.side === 'k' ? 5 : 3;
+            this.board.movePiece(row, rookSrcCol, row, rookDstCol);
+        }
 
         // Apply promotion
         if (piece.type === 'p' && promotionType) {
