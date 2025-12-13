@@ -55,14 +55,10 @@ export default class ChessView {
         // Controls is flex row.
         // Let's put it above board, below controls?
 
-        document.getElementById('app').insertBefore(capturedContainer, document.getElementById('chess-board')); // Wait, chess-board is created inside renderBoard? No, it's passed in constructor.
-
-        // Element passed to constructor is used as board container.
-        // In main.js: const view = new ChessView(document.getElementById('chess-board'), gameState);
-        // So this.element IS #chess-board.
-
-        // We want to insert 'capturedContainer' BEFORE this.element, but INSIDE the parent.
-        this.element.parentNode.insertBefore(capturedContainer, this.element);
+        // We want to insert 'capturedContainer' BEFORE this.element (chess-board), but INSIDE the parent (.chess-container).
+        if (this.element && this.element.parentNode) {
+            this.element.parentNode.insertBefore(capturedContainer, this.element);
+        }
 
         // Actually, we want one above (Black lost?) and one below (White lost?).
         // If we duplicate logic, we can split.
