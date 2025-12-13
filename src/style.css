@@ -57,7 +57,32 @@ body {
   align-items: center;
   position: relative;
   user-select: none;
+  font-size: 3.5rem;
+  /* Large pieces */
+  cursor: pointer;
 }
+
+.piece {
+  cursor: grab;
+  transition: transform 0.2s;
+}
+
+.piece:hover {
+  transform: scale(1.1);
+}
+
+.piece.white {
+  color: #fff;
+  text-shadow: 0 0 2px #000, 0 2px 4px rgba(0, 0, 0, 0.5);
+  /* Make white pieces pop */
+}
+
+.piece.black {
+  color: #000;
+  text-shadow: 0 0 1px #fff;
+  /* Slight outline for black pieces on dark squares */
+}
+
 
 .square.light {
   background-color: var(--board-light);

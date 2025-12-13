@@ -31,5 +31,36 @@ export default class ChessView {
             }
             this.squares.push(row);
         }
+        this.updatePieces();
+    }
+
+    updatePieces() {
+        const board = this.gameState.getBoard();
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                const piece = board.getPiece(i, j);
+                const square = this.squares[i][j];
+                square.innerHTML = ''; // Clear
+
+                if (piece) {
+                    const pieceEl = document.createElement('div');
+                    pieceEl.classList.add('piece');
+                    pieceEl.classList.add(piece.color === 'w' ? 'white' : 'black');
+
+                    // Map types to unicode for now (or images later)
+                    const mapping = {
+                        'k': piece.color === 'w' ? '♔' : '♚',
+                        'q': piece.color === 'w' ? '♕' : '♛',
+                        'r': piece.color === 'w' ? '♖' : '♜',
+                        'b': piece.color === 'w' ? '♗' : '♝',
+                        'n': piece.color === 'w' ? '♘' : '♞',
+                        'p': piece.color === 'w' ? '♙' : '♟'
+                    };
+
+                    pieceEl.textContent = mapping[piece.type];
+                    square.appendChild(pieceEl);
+                }
+            }
+        }
     }
 }
