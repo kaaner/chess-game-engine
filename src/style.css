@@ -7,6 +7,42 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
+.promotion-modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #333;
+  padding: 1rem;
+  border-radius: 8px;
+  display: flex;
+  gap: 1rem;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--board-light);
+}
+
+.promotion-piece {
+  font-size: 3rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  background: var(--board-dark);
+}
+
+.promotion-piece:hover {
+  background: var(--highlight);
+}
+
+.promotion-piece.white {
+  color: #fff;
+}
+
+.promotion-piece.black {
+  color: #000;
+  text-shadow: 0 0 1px #fff;
+}
+
 body {
   margin: 0;
   display: flex;
