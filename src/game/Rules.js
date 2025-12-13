@@ -31,6 +31,7 @@ export default class Rules {
                         }
                         // En Passant
                         if (enPassantEnabled && enPassantTarget && enPassantTarget.row === targetRow && enPassantTarget.col === targetCol) {
+                            // console.log('En Passant Possible:', {row: targetRow, col: targetCol});
                             moves.push({ row: targetRow, col: targetCol, isEnPassant: true });
                         }
                     }
@@ -250,10 +251,10 @@ export default class Rules {
                 if (rook) rook.hasMoved = true;
             } else if (move.isEnPassant) {
                 tempBoard.movePiece(row, col, move.row, move.col);
-                // Remove the captured pawn (behind the move destination)
-                // If white moves up (-1), captured pawn was at (row, col+diff). 
-                // Destination is (row-1, col+diff). 
-                // Actually simpler: captured piece is at (row, move.col)
+                // Remove the captured pawn. 
+                // Captured pawn is at {row, move.col}.
+                // row: start row of moving piece. move.col: destination column.
+                // This corresponds to `fromRow` and `toCol` in makeMove.
                 tempBoard.squares[row][move.col] = null;
             } else {
                 tempBoard.movePiece(row, col, move.row, move.col);

@@ -69,7 +69,37 @@ export default class GameState {
 
         // Handle En Passant Capture
         if (move.isEnPassant) {
-            // Captured pawn is at {fromRow, toCol}
+            // Captured pawn is NOT at {fromRow, toCol}. 
+            // It is at {fromRow, move.col} (i.e. toCol). Wait.
+            // Move: P(r, c) -> (r+dir, c+shift).
+            // En Passant Target: (r+dir, c+shift).
+            // Captured Pawn: (r, c+shift). which is (fromRow, toCol).
+            // Example: White at (3,4). Target (2,3). Captures Black at (3,3).
+            // fromRow=3. toRow=2. toCol=3.
+            // Captured Square: (3, 3). So (fromRow, toCol).
+            // Black (4,2). Target (5,3). Captures White at (4,3).
+            // fromRow=4. toRow=5. toCol=3.
+            // Captured Square: (4, 3). So (fromRow, toCol).
+
+            // WAIT, logic is correct for `fromRow` which is the start row.
+            // But is `movePiece` messing it up?
+            // movePiece(fromRow, fromCol, toRow, toCol);
+            // This moves P from (fromRow, fromCol) to (toRow, toCol).
+            // If capturing, `toRow`!=`fromRow`.
+            // The captured pawn is at `fromRow` (same rank as attacker), and `toCol` (file of victim).
+            // So `this.board.squares[fromRow][toCol]` is correct.
+
+            // Is it possible `movePiece` overwrote it?
+            // movePiece sets `toRow, toCol` to the piece.
+            // Captured pawn is at `fromRow, toCol`.
+            // So `fromRow` != `toRow`. 
+            // So movePiece does NOT overwrite captured pawn.
+
+            // Maybe the UI is not updating `fromRow, toCol`?
+            // ChessView iterates board. If `squares[fromRow][toCol]` is null, it clears.
+
+            // Let's add logging to verify coordinates.
+            console.log('En Passant Execution:', { fromRow, fromCol, toRow, toCol });
             this.board.squares[fromRow][toCol] = null;
         }
 
