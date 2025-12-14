@@ -3,7 +3,6 @@
   <a href="http://localhost:5173"><img src="public/chess-icon.svg" alt="Chess Game Engine" width="200"></a>
   <br>
   Chess Game Engine
-  <br>
 </h1>
 
 <h4 align="center">A modern, fully functional Chess application built with vanilla JavaScript.</h4>
