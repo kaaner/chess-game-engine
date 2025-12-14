@@ -313,7 +313,12 @@ export default class ChessView {
             for (let j = 0; j < 8; j++) {
                 const piece = board.getPiece(i, j);
                 const square = this.squares[i][j];
-                square.innerHTML = ''; // Clear
+
+                // Remove existing piece only, preserve coordinates
+                const existingPiece = square.querySelector('.piece');
+                if (existingPiece) {
+                    existingPiece.remove();
+                }
 
                 if (piece) {
                     const pieceEl = document.createElement('div');
