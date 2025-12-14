@@ -280,6 +280,7 @@ export default class ChessView {
             const Rules = module.default;
             // Ideally GameState should handle this dependency, but for now importing here is quick
             const legalMoves = Rules.getLegalMoves(this.gameState.getBoard(), row, col);
+            const piece = this.gameState.getBoard().getPiece(row, col);
 
             legalMoves.forEach(move => {
                 const square = this.squares[move.row][move.col];
@@ -288,6 +289,18 @@ export default class ChessView {
                 const dot = document.createElement('div');
                 dot.classList.add('move-hint');
                 square.appendChild(dot);
+
+                // If this is an en-passant move, also highlight the captured pawn's square
+                if (move.isEnPassant && piece) {
+                    const captureRow = move.row + (piece.color === 'w' ? 1 : -1);
+                    const captureCol = move.col;
+                    if (captureRow >= 0 && captureRow < 8 && captureCol >= 0 && captureCol < 8) {
+                        const captureSquare = this.squares[captureRow][captureCol];
+                        if (captureSquare) {
+                            captureSquare.classList.add('highlight-move');
+                        }
+                    }
+                }
             });
         });
     }
