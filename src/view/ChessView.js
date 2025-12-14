@@ -402,6 +402,7 @@ export default class ChessView {
             btn.addEventListener('click', () => {
                 this.gameState.makeMove(fromRow, fromCol, toRow, toCol, type);
                 this.updatePieces();
+                this.updateHistoryUI(); // Update history
                 this.deselectSquare();
 
                 // Update status
@@ -483,6 +484,16 @@ export default class ChessView {
 
             const moveRow = document.createElement('div');
             moveRow.classList.add('move-row');
+
+            // Advantage bar
+            const bar = document.createElement('div');
+            bar.classList.add('advantage-bar');
+            const advantage = moveWhite.advantage || 0; // Default to 0 if not set
+            const maxAdv = 39; // Max possible material difference
+            const whitePercent = Math.max(0, Math.min(100, 50 + (advantage / maxAdv) * 50));
+            const blackPercent = 100 - whitePercent;
+            bar.style.background = `linear-gradient(to bottom, #fff ${whitePercent}%, #000 ${whitePercent}%)`;
+            moveRow.appendChild(bar);
 
             const num = document.createElement('span');
             num.classList.add('move-num');

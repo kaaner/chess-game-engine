@@ -192,7 +192,7 @@ export default class GameState {
             to: { row: toRow, col: toCol }
         };
 
-        this.history.push({ from: { r: fromRow, c: fromCol }, to: { r: toRow, c: toCol }, piece: piece, promotion: promotionType });
+        this.history.push({ from: { r: fromRow, c: fromCol }, to: { r: toRow, c: toCol }, piece: piece, promotion: promotionType, advantage: this.getMaterialAdvantage() });
 
         // Switch turn
         this.switchTurn();
@@ -252,6 +252,29 @@ export default class GameState {
                 this.winner = 'draw';
                 console.log("Stalemate!");
             }
-        }
     }
+
+    getMaterialAdvantage() {
+        const values = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
+        let whiteMaterial = 0;
+        let blackMaterial = 0;
+
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.board.getPiece(row, col);
+                if (piece) {
+                    const value = values[piece.type];
+                    if (piece.color === 'w') {
+                        whiteMaterial += value;
+                    } else {
+                        blackMaterial += value;
+                    }
+                }
+            }
+        }
+
+        // Advantage: positive for white, negative for black
+        return whiteMaterial - blackMaterial;
+    }
+}
 }
