@@ -9,11 +9,12 @@
 <h4 align="center">A modern, fully functional Chess application built with vanilla JavaScript.</h4>
 
 <p align="center">
-  <a href="#key-features">Key Features</a> •
-  <a href="#how-to-use">How To Use</a> •
-  <a href="#download">Download</a> •
-  <a href="#credits">Credits</a> •
-  <a href="#license">License</a>
+  <a href="#-key-features">Key Features</a> •
+  <a href="#-screenshot">Screenshot</a> •
+  <a href="#-how-to-use">How To Use</a> •
+  <a href="#-download">Download</a> •
+  <a href="#-credits">Credits</a> •
+  <a href="#-license">License</a>
 </p>
 
 <p align="center">
@@ -27,8 +28,6 @@
     <img src="https://img.shields.io/github/license/kaaner/chess-game-engine?style=flat-square&color=orange" alt="License">
   </a>
 </p>
-
-![screenshot](https://raw.githubusercontent.com/kaaner/chess-game-engine/master/public/screenshot.png)
 
 ## 🌟 Key Features
 
@@ -56,26 +55,32 @@
 *   **Vite Powered**: Instant dev server and optimized production builds.
 *   **CSS Animations**: Smooth, performant visual effects without JavaScript overhead.
 
+---
+
+## 🖼️ Screenshot
+
+![screenshot](https://raw.githubusercontent.com/kaaner/chess-game-engine/master/public/screenshot.png)
+
 ## 🚀 How To Use
 
-To clone and run this application, you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer. From your command line:
+To clone and run this application, you'll need [Git](https://git-scm.com) and [Node.js](https://nodejs.org/en/download/) (which comes with [npm](http://npmjs.com)) installed on your computer:
 
 ```bash
 # Clone this repository
-$ git clone https://github.com/kaaner/chess-game-engine.git
+git clone https://github.com/kaaner/chess-game-engine.git
 
 # Go into the repository
-$ cd chess-game-engine
+cd chess-game-engine
 
 # Install dependencies
-$ npm install
+npm install
 
 # Run the app
-$ npm run dev
+npm run dev
 ```
 
 > **Note**
-> If you're using Linux Bash for Windows, [csee this guide](https://www.howtogeek.com/261591/how-to-create-and-run-bash-shell-scripts-on-windows-10/) or use `node` from the command prompt.
+> If you're using Linux Bash for Windows, [see this guide](https://www.howtogeek.com/261591/how-to-create-and-run-bash-shell-scripts-on-windows-10/) or use `node` from the command prompt.
 
 ## 🎨 Tech Stack
 
@@ -104,7 +109,7 @@ Contributions are always welcome!
 4.  Push to the branch (`git push origin feature/AmazingFeature`)
 5.  Open a Pull Request
 
-## � License
+## 📄 License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 

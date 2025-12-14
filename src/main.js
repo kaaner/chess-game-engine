@@ -25,7 +25,12 @@ document.querySelector('#app').innerHTML = `
 `;
 
 // Now element exists
-const view = new ChessView(document.getElementById('chess-board'), game);
+const boardElement = document.getElementById('chess-board');
+if (!boardElement) {
+    console.error('Chess board element not found!');
+} else {
+    const view = new ChessView(boardElement, game);
+}
 
 // Debug
 console.log(game.board.toString());
