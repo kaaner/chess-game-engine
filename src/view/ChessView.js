@@ -73,7 +73,6 @@ export default class ChessView {
         // Let's stick to simple: One container with top/bottom sections.
     }
     setupHistoryUI() {
-        const app = document.getElementById('app');
         const historyContainer = document.createElement('div');
         historyContainer.id = 'history-container';
         historyContainer.innerHTML = `
@@ -83,7 +82,9 @@ export default class ChessView {
 
         // Insert before controls
         const controls = document.getElementById('controls');
-        app.insertBefore(historyContainer, controls);
+        if (controls && controls.parentNode) {
+            controls.parentNode.insertBefore(historyContainer, controls);
+        }
     }
 
     setupControlsUI() {
