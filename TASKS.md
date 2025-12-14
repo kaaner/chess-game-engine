@@ -22,6 +22,10 @@ Synced with GitHub Repository: [kaaner/chess-game-engine](https://github.com/kaa
 - [x] **[#5] Render Board** - Implemented
 - [x] **[#6] Render Pieces** - Implemented
 - [x] **[#7] Interaction** - Implemented (Drag & Drop, Click-to-move)
+- [x] **[#8] Visual Feedback** - Implemented (v0.1.0) ✅
+  - Check & Checkmate indicators
+  - Last move highlighting
+  - Selected piece enhancement
 
 ### DevOps
 - [x] **[#53] Copilot Instructions** - Set up
@@ -30,18 +34,6 @@ Synced with GitHub Repository: [kaaner/chess-game-engine](https://github.com/kaa
 ---
 
 ## 📋 Open Issues
-
-### UI Enhancements
-- [x] **[#8] UI Implementation: Visual feedback - Phases 1-3 (v0.1.0)**
-  - **Completed:**
-    - [x] Check & Checkmate indicators (king highlight when in check) ✅
-    - [x] Last move highlighting (source/destination squares) ✅
-    - [x] Selected piece visual feedback ✅
-  - **Remaining:**
-    - [ ] Capture indicators (distinguish capture vs normal move)
-    - [ ] Invalid move feedback (shake animation, red flash)
-    - [ ] Turn indicator (whose turn it is)
-    - [ ] Stalemate & Draw visual indicators
 
 ### Architecture & Improvements
 - [ ] **[#25] Testing Infrastructure**
