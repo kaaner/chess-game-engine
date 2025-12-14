@@ -2,6 +2,7 @@ export default class GameSettings {
     constructor() {
         this.castlingEnabled = true;
         this.enPassantEnabled = true;
+        this.aiEnabled = false; // Default: AI off
         this.promotionPieces = ['q', 'r', 'b', 'n']; // Default: Queen, Rook, Bishop, Knight
     }
 

@@ -106,6 +106,7 @@ export default class ChessView {
             <div class="control-actions">
                 <button id="pause-btn" title="Pause Game">⏸️</button>
                 <button id="restart-btn" title="Restart Game">🔄</button>
+                <button id="ai-btn" title="Play vs AI">🤖</button>
                 <button id="settings-btn" title="Settings">⚙️</button>
             </div>
         `;
@@ -115,6 +116,336 @@ export default class ChessView {
         document.getElementById('settings-btn').addEventListener('click', () => this.showSettingsDialog());
         document.getElementById('pause-btn').addEventListener('click', () => this.handlePauseToggle());
         document.getElementById('restart-btn').addEventListener('click', () => this.handleRestart());
+        document.getElementById('ai-btn').addEventListener('click', () => this.handleAIToggle());
+
+        // Button assignments
+        this.widgetConfig = [
+            { btnId: 'analyze-btn', widgetId: 'widget-analysis', title: 'Analysis' },
+            { btnId: 'eval-status-btn', widgetId: 'widget-eval', title: 'Evaluation Status' },
+            { btnId: 'best-move-btn', widgetId: 'widget-bestmove', title: 'Best Move' },
+            { btnId: 'review-move-btn', widgetId: 'widget-review', title: 'Move Review' }
+        ];
+
+        this.widgetConfig.forEach(config => {
+            const btn = document.getElementById(config.btnId);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    this.toggleWidget(config.widgetId, config.btnId, config.title);
+                    // Clear saved state on manual interaction to avoid confused restore?
+                    // Or keep it? Let's leave it.
+                });
+            }
+        });
+
+        // Chat Button
+        const chatBtn = document.getElementById('chat-btn');
+        if (chatBtn) chatBtn.addEventListener('click', () => this.toggleChat());
+
+        const chatCloseBtn = document.getElementById('chat-close-btn');
+        if (chatCloseBtn) chatCloseBtn.addEventListener('click', () => this.toggleChat());
+
+        const chatSend = document.getElementById('chat-send');
+        if (chatSend) chatSend.addEventListener('click', () => this.handleChatInput());
+
+        const chatInput = document.getElementById('chat-input');
+        if (chatInput) {
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') this.handleChatInput();
+            });
+        }
+    }
+
+    toggleChat() {
+        const widget = document.getElementById('chat-widget');
+        const btn = document.getElementById('chat-btn');
+        if (!widget) return;
+
+        const isVisible = widget.style.display !== 'none';
+
+        if (isVisible) {
+            widget.style.display = 'none';
+            if (btn) btn.classList.remove('active');
+        } else {
+            widget.style.display = 'flex'; // It's flex column
+            if (btn) btn.classList.add('active');
+            // Focus input
+            setTimeout(() => document.getElementById('chat-input').focus(), 100);
+        }
+    }
+
+    handleChatInput() {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+
+        // Add user message
+        this.addChatMessage('user', text);
+        input.value = '';
+
+        // Simulate thinking and reply
+        setTimeout(() => {
+            this.processChatCommand(text);
+        }, 500);
+    }
+
+    addChatMessage(sender, text) {
+        const container = document.getElementById('chat-messages');
+        const msg = document.createElement('div');
+        msg.classList.add('message', sender);
+        msg.innerText = text; // or innerHTML depending on trust, innerText safer
+        container.appendChild(msg);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    processChatCommand(text) {
+        const lower = text.toLowerCase();
+        let reply = "I'm not sure how to help with that yet.";
+
+        if (lower.includes('best move') || lower.includes('calculate') || lower.includes('hamle') || lower.includes('what to do')) {
+            // Save state before changing
+            this.savedWidgetState = this.saveWidgetState();
+
+            reply = "I'm analyzing the position to find the best move for you...";
+            this.addChatMessage('system', reply);
+
+            const widget = document.getElementById('widget-bestmove');
+            if (!widget) {
+                this.toggleWidget('widget-bestmove', 'best-move-btn', 'Best Move');
+            } else {
+                this.updateWidgetContent('widget-bestmove');
+            }
+            return;
+        }
+
+        if (lower.includes('eval') || lower.includes('winning') || lower.includes('losing') || lower.includes('durum')) {
+            this.savedWidgetState = this.saveWidgetState();
+
+            reply = "Checking the evaluation...";
+            this.addChatMessage('system', reply);
+
+            const widget = document.getElementById('widget-eval');
+            if (!widget) {
+                this.toggleWidget('widget-eval', 'eval-status-btn', 'Evaluation Status');
+            } else {
+                this.updateWidgetContent('widget-eval');
+            }
+            return;
+        }
+
+        if (lower.includes('temizle') || lower.includes('clear') || lower.includes('reset') || lower.includes('kapat') || lower.includes('geri al')) {
+            if (this.savedWidgetState) {
+                reply = "Restoring previous view...";
+                this.restoreWidgetState(this.savedWidgetState);
+                this.savedWidgetState = null; // Consume the undo
+            } else {
+                reply = "Clearing analysis tools.";
+                this.resetUI();
+            }
+            this.addChatMessage('system', reply);
+            return;
+        }
+
+        if (lower.includes('hello') || lower.includes('hi')) {
+            reply = "Hello! Ready to play chess?";
+        }
+
+        this.addChatMessage('system', reply);
+    }
+
+    saveWidgetState() {
+        const openWidgets = [];
+        const widgetArea = document.getElementById('widget-area');
+        if (widgetArea) {
+            widgetArea.querySelectorAll('.widget-box').forEach(w => openWidgets.push(w.id));
+        }
+        return openWidgets;
+    }
+
+    restoreWidgetState(savedIds) {
+        const widgetArea = document.getElementById('widget-area');
+        if (!widgetArea) return;
+
+        // 1. Close widgets that are open but shouldn't be
+        const currentWidgets = Array.from(widgetArea.querySelectorAll('.widget-box'));
+        currentWidgets.forEach(w => {
+            if (!savedIds.includes(w.id)) {
+                // Determine config to toggle properly (updates button active state)
+                const config = this.widgetConfig.find(c => c.widgetId === w.id);
+                if (config) {
+                    this.toggleWidget(config.widgetId, config.btnId, config.title);
+                } else {
+                    w.remove(); // Fallback
+                }
+            }
+        });
+
+        // 2. Open widgets that should be open but aren't
+        savedIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) { // Not open
+                const config = this.widgetConfig.find(c => c.widgetId === id);
+                if (config) {
+                    this.toggleWidget(config.widgetId, config.btnId, config.title);
+                }
+            }
+        });
+
+        // Also clear highlights as "Best Move" often adds them, and restoration implies removing them if they weren't there
+        // Assuming we didn't save highlight state, we default to clearing them for a cleaner 'undo'
+        const bestHints = this.element.querySelectorAll('.hint-best');
+        bestHints.forEach(el => el.classList.remove('hint-best'));
+        this.deselectSquare();
+    }
+
+    resetUI() {
+        // Deselect any selected piece
+        this.deselectSquare();
+
+        // Clear Best Move highlights
+        const bestHints = this.element.querySelectorAll('.hint-best');
+        bestHints.forEach(el => el.classList.remove('hint-best'));
+
+        // Close all widgets
+        const widgetArea = document.getElementById('widget-area');
+        if (widgetArea) widgetArea.innerHTML = '';
+
+        // Reset active button states
+        const buttons = document.querySelectorAll('.left-controls button');
+        buttons.forEach(btn => btn.classList.remove('active'));
+    }
+
+    toggleWidget(widgetId, btnId, title) {
+        const area = document.getElementById('widget-area');
+        const btn = document.getElementById(btnId);
+        let widget = document.getElementById(widgetId);
+
+        if (widget) {
+            // Close it
+            widget.remove();
+            if (btn) btn.classList.remove('active');
+        } else {
+            // Open it
+            widget = document.createElement('div');
+            widget.id = widgetId;
+            widget.className = 'widget-box';
+            widget.innerHTML = `
+                <div class="widget-header">
+                    <h4>${title}</h4>
+                    <button class="widget-close" title="Close">&times;</button>
+                </div>
+                <div class="widget-content" id="${widgetId}-content">
+                    Loading...
+                </div>
+            `;
+
+            // Close button logic
+            const closeBtn = widget.querySelector('.widget-close');
+            closeBtn.addEventListener('click', () => {
+                widget.remove();
+                if (btn) btn.classList.remove('active');
+            });
+
+            if (area) area.appendChild(widget);
+            if (btn) btn.classList.add('active');
+
+            // Trigger specific update
+            this.updateWidgetContent(widgetId);
+        }
+    }
+
+    updateWidgetContent(widgetId) {
+        const content = document.getElementById(`${widgetId}-content`);
+        if (!content) return;
+
+        if (widgetId === 'widget-eval') {
+            this.updateAnalysisText(content);
+        } else if (widgetId === 'widget-bestmove') {
+            this.showBestMove(content);
+        } else if (widgetId === 'widget-review') {
+            this.reviewLastMove(content);
+        } else if (widgetId === 'widget-analysis') {
+            content.innerHTML = "General analysis tools coming soon.";
+            // Or maybe move the old analysis text here?
+        }
+    }
+
+    ensureAnalysisOpen() {
+        // Deprecated or redirect to specific widget?
+        // Let's assume calls to this now need re-routing or ignore.
+        // For compatibility, maybe open Eval widget?
+        // Let's ignore for now as we are strictly widget based.
+    }
+
+    toggleAnalysis() {
+        // Redundant with new widget system but kept for reference or legacy button clicks
+        this.toggleWidget('widget-analysis', 'analyze-btn', 'Analysis');
+    }
+
+    updateAnalysisText(targetElement = null) {
+        // Support dynamic target or fallback
+        const text = targetElement;
+        if (!text) return;
+
+        const score = this.gameState.getEvaluation();
+        let msg = "";
+        const absScore = Math.abs(score);
+
+        if (absScore > 500) {
+            msg = `Computer detects a forced < b > Checkmate</b > for ${score > 0 ? 'White' : 'Black'}!`;
+        } else if (absScore < 5) {
+            msg = "The position is <b>Equal</b>.";
+        } else {
+            const side = score > 0 ? 'White' : 'Black';
+            let degree = "slight";
+            if (absScore > 15) degree = "clear";
+            if (absScore > 40) degree = "winning";
+
+            msg = `Computer sees a < b > ${degree} advantage</b > for ${side}.`;
+        }
+        const evalNum = (score / 10).toFixed(1);
+        msg += `< br > <small>Evaluation: ${score > 0 ? '+' : ''}${evalNum}</small>`;
+
+        text.innerHTML = msg;
+    }
+
+    updateWidgets() {
+        const openWidgets = document.querySelectorAll('.widget-box');
+        openWidgets.forEach(w => {
+            this.updateWidgetContent(w.id);
+        });
+    }
+
+    handleAIToggle() {
+        const btn = document.getElementById('ai-btn');
+        this.gameState.settings.aiEnabled = !this.gameState.settings.aiEnabled;
+        btn.classList.toggle('active', this.gameState.settings.aiEnabled);
+
+        // Visual feedback
+        if (this.gameState.settings.aiEnabled) {
+            btn.style.color = '#4caf50';
+            if (this.gameState.turn === 'b') {
+                this.triggerAimove();
+            }
+        } else {
+            btn.style.color = '#fff';
+        }
+    }
+    triggerAimove() {
+        if (!this.gameState.settings.aiEnabled || this.gameState.gameOver) return;
+
+        // Small delay for realism
+        setTimeout(() => {
+            this.gameState.makeAIMove();
+            this.updatePieces();
+            this.updateHistoryUI();
+
+            // Check game over
+            const statusEl = document.getElementById('status');
+            if (statusEl) statusEl.innerText = `${this.gameState.turn === 'w' ? 'White' : 'Black'} to move`;
+            if (this.gameState.gameOver) {
+                if (statusEl) statusEl.innerText = `Game Over! Winner: ${this.gameState.winner} `;
+            }
+        }, 500);
     }
 
     handlePauseToggle() {
@@ -156,7 +487,7 @@ export default class ChessView {
         const fmt = (t) => {
             const m = Math.floor(t / 60);
             const s = Math.floor(t % 60);
-            return `${m}:${s < 10 ? '0' : ''}${s}`;
+            return `${m}:${s < 10 ? '0' : ''}${s} `;
         };
         const elW = document.getElementById('clock-white');
         const elB = document.getElementById('clock-black');
@@ -253,7 +584,17 @@ export default class ChessView {
                 const statusEl = document.getElementById('status');
                 if (statusEl) statusEl.innerText = `${this.gameState.turn === 'w' ? 'White' : 'Black'} to move`;
                 if (this.gameState.gameOver) {
-                    if (statusEl) statusEl.innerText = `Game Over! Winner: ${this.gameState.winner}`;
+                    if (statusEl) statusEl.innerText = `Game Over! Winner: ${this.gameState.winner} `;
+                } else {
+                    // Trigger AI if enabled and it's their turn
+                    const turn = this.gameState.turn;
+                    // Usually AI plays Black, but could be either. 
+                    // Let's assume AI enabled means "Computer vs Human". 
+                    // If turn matches AI color (for now Black if AI enabled).
+                    // Or better: triggerAimove checks validity.
+                    if (this.gameState.settings.aiEnabled) {
+                        this.triggerAimove();
+                    }
                 }
             } else {
                 // Invalid move
@@ -350,12 +691,60 @@ export default class ChessView {
 
                     pieceEl.textContent = mapping[piece.type];
                     square.appendChild(pieceEl);
+
+                    // Highlight king if in check (Flash)
+                    if (this.gameState.inCheck && piece.type === 'k' && piece.color === this.gameState.turn) {
+                        // We want to re-trigger animation if it's already there?
+                        // Removing class then adding reflows.
+                        square.classList.remove('in-check');
+                        void square.offsetWidth; // Trigger reflow
+                        square.classList.add('in-check');
+                    }
+
+                    // Highlight King if Checkmate (Permanent Red)
+                    if (this.gameState.gameOver && this.gameState.winner !== 'draw') {
+                        const loserColor = this.gameState.winner === 'w' ? 'b' : 'w';
+                        if (piece.type === 'k' && piece.color === loserColor) {
+                            pieceEl.classList.add('checkmate');
+                        }
+                    }
                 }
             }
         }
-        
+
         // Update visual feedback indicators
         this.highlightLastMove();
+        this.updateEvaluationBar();
+        this.updateAnalysisText(); // Refresh analysis text if open
+    }
+
+    updateEvaluationBar() {
+        // Use AI evaluation which detects checks/mates (Depth 2)
+        // Score: Pawn=10. Mate=10000.
+        // Positive = White Adv. Negative = Black Adv.
+        const score = this.gameState.getEvaluation();
+
+        const barFill = document.getElementById('eval-bar-fill');
+        if (barFill) {
+            // Cap advantage at +/- 50 (5 pawns) for visual scaling
+            // This ensures decisive advantages (like +50 or Mate) fill the bar.
+            const cappedScore = Math.max(-50, Math.min(50, score));
+
+            // Calculate percentage: 0 -> 50%. +50 -> 100%. -50 -> 0%.
+            // Range is 100. (50 - (-50)).
+            // Percent = (Score - Min) / Range * 100
+            // Percent = (cappedScore - (-50)) / 100 * 100 = cappedScore + 50.
+            const percent = cappedScore + 50;
+
+            barFill.style.height = `${percent}% `;
+
+            // If Mate detected (score > 500), maybe change color?
+            if (Math.abs(score) > 500) {
+                barFill.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.8)'; // Gold glow for mate
+            } else {
+                barFill.style.boxShadow = '0 0 10px rgba(255, 255, 255, 0.5)';
+            }
+        }
     }
 
     /**
@@ -425,7 +814,7 @@ export default class ChessView {
         const settings = this.gameState.settings;
 
         modal.innerHTML = `
-            <div class="settings-content">
+    < div class="settings-content" >
                 <h2>Game Settings</h2>
                 
                 <div class="setting-item">
@@ -458,8 +847,8 @@ export default class ChessView {
                 <div class="settings-actions">
                     <button id="close-settings">Close</button>
                 </div>
-            </div>
-        `;
+            </div >
+    `;
 
         this.element.appendChild(modal);
 
@@ -492,7 +881,7 @@ export default class ChessView {
             const maxAdv = 39; // Max possible material difference
             const whitePercent = Math.max(0, Math.min(100, 50 + (advantage / maxAdv) * 50));
             const blackPercent = 100 - whitePercent;
-            bar.style.background = `linear-gradient(to bottom, #fff ${whitePercent}%, #000 ${whitePercent}%)`;
+            bar.style.background = `linear - gradient(to bottom, #fff ${whitePercent} %, #000 ${whitePercent} %)`;
             moveRow.appendChild(bar);
 
             const num = document.createElement('span');
@@ -520,6 +909,106 @@ export default class ChessView {
         list.scrollTop = list.scrollHeight;
 
         this.updateCapturedPiecesUI();
+    }
+
+    showBestMove(targetElement = null) {
+        // Use AI to find best move for current turn
+        // If targetElement is null, fallback or error (but we call it with correct element now)
+        const text = targetElement || document.getElementById('analysis-text'); // Fallback if old code still calls it
+        if (!text) return;
+
+        text.innerHTML = "Thinking...";
+
+        setTimeout(() => {
+            const turn = this.gameState.turn;
+            const ai = this.gameState.ai;
+            const bestMove = ai.getBestMove(turn);
+
+            if (bestMove) {
+                // bestMove object: { from: {r, c}, to: {r, c}, ... }
+                const fromChars = String.fromCharCode(97 + bestMove.from.c) + (8 - bestMove.from.r);
+                const toChars = String.fromCharCode(97 + bestMove.to.c) + (8 - bestMove.to.r);
+
+                text.innerHTML = `< b > Best Move Recommendation:</b > <br>
+    Move from <b>${fromChars}</b> to <b>${toChars}</b>.`;
+
+                // Highlight on board?
+                this.highlightBestMove(bestMove);
+            } else {
+                text.innerHTML = "No moves available.";
+            }
+        }, 100);
+    }
+
+    highlightBestMove(move) {
+        // Clear old hints
+        const squares = this.element.querySelectorAll('.square');
+        squares.forEach(s => s.classList.remove('hint-best'));
+
+        const fromSquare = this.squares[move.from.r][move.from.c];
+        const toSquare = this.squares[move.to.r][move.to.c];
+
+        if (fromSquare) fromSquare.classList.add('hint-best');
+        if (toSquare) toSquare.classList.add('hint-best');
+    }
+
+    reviewLastMove(targetElement = null) {
+        const text = targetElement || document.getElementById('analysis-text');
+        if (!text) return;
+
+        const history = this.gameState.getPreviousMoves();
+        if (history.length === 0) {
+            text.innerHTML = "No moves to review.";
+            return;
+        }
+
+        const lastMove = history[history.length - 1];
+
+        const score = this.gameState.getEvaluation();
+        const mover = this.gameState.turn === 'w' ? 'b' : 'w';
+
+        let judgement = 'good';
+
+        if (mover === 'w') {
+            if (score < -200) judgement = 'blunder';
+            else if (score < -50) judgement = 'mistake';
+            else if (score > 50) judgement = 'best';
+        } else {
+            if (score > 200) judgement = 'blunder';
+            else if (score > 50) judgement = 'mistake';
+            else if (score < -50) judgement = 'best';
+        }
+
+        const icons = {
+            'best': '⭐',
+            'good': '✅',
+            'mistake': '⚠️',
+            'blunder': '??'
+        };
+
+        const icon = icons[judgement];
+
+        // Annotate the board
+        this.clearAnnotations();
+        const destSquare = this.squares[lastMove.to.r][lastMove.to.c];
+        const annotation = document.createElement('div');
+        annotation.classList.add('annotation');
+        annotation.textContent = icon;
+        // Color code
+        if (judgement === 'blunder') annotation.style.color = 'red';
+        if (judgement === 'best') annotation.style.color = '#ffd700'; // Gold
+        if (judgement === 'good') annotation.style.color = '#4caf50';
+        if (judgement === 'mistake') annotation.style.color = 'orange';
+
+        destSquare.appendChild(annotation);
+
+        text.innerHTML = `Judgement: <b style="color:${annotation.style.color}">${judgement.toUpperCase()}</b> ${icon}<br>
+        <small>(Based on static eval)</small>`;
+    }
+
+    clearAnnotations() {
+        const anns = this.element.querySelectorAll('.annotation');
+        anns.forEach(a => a.remove());
     }
 
     updateCapturedPiecesUI() {
@@ -576,7 +1065,7 @@ export default class ChessView {
 
         // Castle
         // We don't have isCastling flag in history yet easily accessible?
-        // GameState history stores { from: {r,c}, to: {r,c}, piece: object, promotion: type }
+        // GameState history stores {from: {r, c}, to: {r, c}, piece: object, promotion: type }
         // We can infer castling if King moves > 1 file
         if (move.piece.type === 'k' && Math.abs(move.to.c - move.from.c) > 1) {
             return move.to.c > move.from.c ? 'O-O' : 'O-O-O';
