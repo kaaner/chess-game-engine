@@ -19,13 +19,7 @@ Synced with GitHub Repository: [kaaner/chess-game-engine](https://github.com/kaa
 - [x] **[#4] Game state management** - Implemented (Check, Checkmate, Stalemate)
 
 ### UI Implementation
-- [x] **[#5] Render Board** - Implemented
-- [x] **[#6] Render Pieces** - Implemented
-- [x] **[#7] Interaction** - Implemented (Drag & Drop, Click-to-move)
-- [x] **[#8] Visual Feedback** - Implemented (v0.1.0) ✅
-  - Check & Checkmate indicators
-  - Last move highlighting
-  - Selected piece enhancement
+- [x] **[#46] Material Advantage Bar in Move History** - Add a vertical bar on the left side of the move history to visualize who has the advantage based on material evaluation after each move.
 
 ### DevOps
 - [x] **[#53] Copilot Instructions** - Set up
