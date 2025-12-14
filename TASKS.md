@@ -32,17 +32,16 @@ Synced with GitHub Repository: [kaaner/chess-game-engine](https://github.com/kaa
 ## 📋 Open Issues
 
 ### UI Enhancements
-- [ ] **[#8] UI Implementation: Visual feedback**
-  - **Priority Tasks:**
-    - [ ] Check & Checkmate indicators (king highlight when in check)
-    - [ ] Last move highlighting (source/destination squares)
-    - [ ] Selected piece visual feedback
+- [x] **[#8] UI Implementation: Visual feedback - Phases 1-3 (v0.1.0)**
+  - **Completed:**
+    - [x] Check & Checkmate indicators (king highlight when in check) ✅
+    - [x] Last move highlighting (source/destination squares) ✅
+    - [x] Selected piece visual feedback ✅
+  - **Remaining:**
     - [ ] Capture indicators (distinguish capture vs normal move)
-  - **Additional Tasks:**
     - [ ] Invalid move feedback (shake animation, red flash)
     - [ ] Turn indicator (whose turn it is)
     - [ ] Stalemate & Draw visual indicators
-  - **Technical:** CSS animations, accessibility, mobile-responsive
 
 ### Architecture & Improvements
 - [ ] **[#25] Testing Infrastructure**
