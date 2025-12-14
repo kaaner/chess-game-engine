@@ -1,9 +1,7 @@
 <h1 align="center">
-  <br />
-  <a href="http://localhost:5173"><img src="https://raw.githubusercontent.com/kaaner/chess-game-engine/master/public/chess-icon.png" alt="Chess Game Engine" width="200"></a>
-  <br />
+  <a href="http://localhost:5173"><img src="https://raw.githubusercontent.com/kaaner/chess-game-engine/master/public/chess-icon.png" alt="Chess Game Engine" width="200">
   Chess Game Engine
-  <br />
+  </a>
 </h1>
 
 <h4 align="center">A modern, fully functional Chess application built with vanilla JavaScript.</h4>
