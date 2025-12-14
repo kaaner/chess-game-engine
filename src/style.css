@@ -249,15 +249,11 @@ body {
 
 /* ... previous styles ... */
 
-#captured-pieces-container {
-  width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  /* Minimal gap */
-}
+/* Removed #captured-pieces-container since we split them */
 
 .captured-area {
+  width: 600px;
+  /* Match board width */
   min-height: 30px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
@@ -265,6 +261,18 @@ body {
   display: flex;
   align-items: center;
   gap: 2px;
+  margin-bottom: 5px;
+  /* Spacing */
+}
+
+/* Specific margins if needed */
+#captured-top {
+  margin-bottom: 0;
+}
+
+#captured-bottom {
+  margin-top: 5px;
+  margin-bottom: 1rem;
 }
 
 .captured-piece {

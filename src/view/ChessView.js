@@ -44,20 +44,26 @@ export default class ChessView {
         // But controls has clock.
         // Let's add specific containers.
 
-        const capturedContainer = document.createElement('div');
-        capturedContainer.id = 'captured-pieces-container';
-        capturedContainer.innerHTML = `
-            <div id="captured-top" class="captured-area"></div>
-            <div id="captured-bottom" class="captured-area"></div>
-        `;
+        // We want one container above Board, one below Board.
 
-        // Insert between controls and board? Or inside controls?
-        // Controls is flex row.
-        // Let's put it above board, below controls?
+        // 1. Top Container (Pieces LOST by White? Or Pieces Captured by Black?)
+        // Let's stick to logic in update: Top is White Pieces Lost.
+        const topContainer = document.createElement('div');
+        topContainer.id = 'captured-top';
+        topContainer.classList.add('captured-area');
 
-        // We want to insert 'capturedContainer' BEFORE this.element (chess-board), but INSIDE the parent (.chess-container).
+        // 2. Bottom Container
+        const bottomContainer = document.createElement('div');
+        bottomContainer.id = 'captured-bottom';
+        bottomContainer.classList.add('captured-area');
+
+        // Insert Top BEFORE Board
         if (this.element && this.element.parentNode) {
-            this.element.parentNode.insertBefore(capturedContainer, this.element);
+            this.element.parentNode.insertBefore(topContainer, this.element);
+
+            // Insert Bottom AFTER Board
+            // nextSibling of Board?
+            this.element.parentNode.insertBefore(bottomContainer, this.element.nextSibling);
         }
 
         // Actually, we want one above (Black lost?) and one below (White lost?).
