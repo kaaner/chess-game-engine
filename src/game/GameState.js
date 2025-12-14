@@ -3,6 +3,7 @@ import GameClock from './GameClock.js';
 import Board from './Board.js';
 import Rules from './Rules.js';
 import { PieceColor } from './Piece.js';
+import AI from './AI.js';
 
 export default class GameState {
     constructor() {
@@ -18,7 +19,9 @@ export default class GameState {
         this.clock = null;
         this.enPassantTarget = null; // { row, col } or null
         this.settings = new GameSettings();
+        this.ai = new AI(this); // Init AI
         this.isPaused = false;
+        this.inCheck = false; // Add inCheck state
         this.lastMove = null; // { from: {row, col}, to: {row, col} } - for highlighting
     }
 
@@ -35,6 +38,7 @@ export default class GameState {
         this.winner = null;
         this.enPassantTarget = null;
         this.isPaused = false;
+        this.inCheck = false;
         this.lastMove = null;
 
         if (this.clock) {
@@ -64,6 +68,11 @@ export default class GameState {
 
     getBoard() {
         return this.board;
+    }
+
+    // Helper to get moves for reconstruction
+    getPreviousMoves() {
+        return this.history;
     }
 
     makeMove(fromRow, fromCol, toRow, toCol, promotionType = null) {
@@ -212,11 +221,17 @@ export default class GameState {
     }
 
     updateGameStatus() {
+        // ... (existing code)
         // Check for Checkmate / Stalemate for the *current* turn player
         // (the player who just got passed the turn)
 
         const currentTurnColor = this.turn;
         let hasLegalMoves = false;
+
+        // Determine if currently in check
+        const kingPos = this.board.findKing(currentTurnColor);
+        const opponent = currentTurnColor === PieceColor.WHITE ? PieceColor.BLACK : PieceColor.WHITE;
+        this.inCheck = Rules.isSquareAttacked(this.board, kingPos.row, kingPos.col, opponent);
 
         const rulesContext = {
             enPassantTarget: this.enPassantTarget,
@@ -245,14 +260,49 @@ export default class GameState {
 
             if (Rules.isSquareAttacked(this.board, kingPos.row, kingPos.col, opponent)) {
                 this.gameOver = true;
-                this.winner = opponent;
+                this.winner = opponent; // Opponent won
                 console.log(`Checkmate! ${opponent} wins.`);
             } else {
                 this.gameOver = true;
                 this.winner = 'draw';
                 console.log("Stalemate!");
             }
+        }
     }
+
+    makeAIMove() {
+        if (this.gameOver || this.isPaused) return;
+
+        const move = this.ai.getBestMove(this.turn);
+        if (move) {
+            this.makeMove(move.from.r, move.from.c, move.to.r, move.to.c, move.promotion); // from is {r,c}, to is {r,c}. Mine are {row,col}
+            // Wait, AI returns objects with {from:{r,c}, to:{r,c}}. 
+            // My Rules returns {row, col}. 
+            // My AI.getAllLegalMoves wraps it: { from: {r: i, c: j}, to: {r: m.row, c: m.col}, ...m }
+            // So:
+            // this.makeMove(move.from.r, move.from.c, move.to.r, move.to.c, move.promotion);
+            // Wait, does 'move' contain promotion field?
+            // AI simulation auto-promotes to Queen.
+            // But makeMove needs specific type string if promotion needed.
+            // My AI simulation simply sets type on board. Does not return 'promotion' string in move object unless I add it.
+            // In getAllLegalMoves: ...m spread. m comes from Rules.getLegalMoves.
+            // Rules.getLegalMoves returns {row,col}. Rules.getPseudoLegalMoves returns {row, col} or {row,col,isCastling..}.
+            // So 'promotion' is not in 'm'.
+            // I should handle promotion in makeAIMove.
+
+            // Check if promotion needed
+            const piece = this.board.getPiece(move.from.r, move.from.c);
+            let promotion = null;
+            if (piece.type === 'p' && (move.to.r === 0 || move.to.r === 7)) {
+                promotion = 'q'; // Always promote to queen for now
+            }
+
+            this.makeMove(move.from.r, move.from.c, move.to.r, move.to.c, promotion);
+        } else {
+            console.log("AI has no moves.");
+        }
+    }
+
 
     getMaterialAdvantage() {
         const values = { 'p': 1, 'n': 3, 'b': 3, 'r': 5, 'q': 9, 'k': 0 };
@@ -276,5 +326,8 @@ export default class GameState {
         // Advantage: positive for white, negative for black
         return whiteMaterial - blackMaterial;
     }
-}
+
+    getEvaluation() {
+        return this.ai.getEvaluation();
+    }
 }

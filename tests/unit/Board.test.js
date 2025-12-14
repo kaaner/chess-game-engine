@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import Board from '../../src/game/Board.js'
-import Piece, { PieceType, PieceColor } from '../../src/game/Piece.js'
+import { Piece, PieceType, PieceColor } from '../../src/game/Piece.js'
 
 describe('Board', () => {
   let board
@@ -71,8 +71,8 @@ describe('Board', () => {
 
     it('should capture opponent piece', () => {
       // Place pieces for capture
-      board.squares[4][4] = new Piece(PieceType.PAWN, PieceColor.WHITE)
-      board.squares[3][4] = new Piece(PieceType.PAWN, PieceColor.BLACK)
+      board.squares[4][4] = new Piece(PieceColor.WHITE, PieceType.PAWN)
+      board.squares[3][4] = new Piece(PieceColor.BLACK, PieceType.PAWN)
       
       board.movePiece(4, 4, 3, 4)
       
