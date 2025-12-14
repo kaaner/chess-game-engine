@@ -413,3 +413,23 @@ body {
   font-weight: bold;
   pointer-events: none;
 }
+/* ==============================================
+   Visual Feedback: Last Move Highlighting
+   ============================================== */
+
+.square.last-move-from {
+  background-color: rgba(255, 235, 59, 0.35) !important;
+  box-shadow: inset 0 0 10px rgba(255, 235, 59, 0.4);
+}
+
+.square.last-move-to {
+  background-color: rgba(255, 235, 59, 0.5) !important;
+  box-shadow: inset 0 0 15px rgba(255, 235, 59, 0.5);
+}
+
+/* Ensure last move highlighting doesn't interfere with piece rendering */
+.square.last-move-from .piece,
+.square.last-move-to .piece {
+  position: relative;
+  z-index: 2;
+}

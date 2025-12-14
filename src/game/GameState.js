@@ -19,6 +19,7 @@ export default class GameState {
         this.enPassantTarget = null; // { row, col } or null
         this.settings = new GameSettings();
         this.isPaused = false;
+        this.lastMove = null; // { from: {row, col}, to: {row, col} } - for highlighting
     }
 
     initClock(minutes, increment, onTick) {
@@ -34,6 +35,7 @@ export default class GameState {
         this.winner = null;
         this.enPassantTarget = null;
         this.isPaused = false;
+        this.lastMove = null;
 
         if (this.clock) {
             this.clock.reset(10); // Hardcoded 10 min for now, should perhaps store initial config
@@ -183,6 +185,12 @@ export default class GameState {
             const promotedPiece = this.board.getPiece(toRow, toCol);
             promotedPiece.type = promotionType;
         }
+
+        // Store last move for visual feedback
+        this.lastMove = {
+            from: { row: fromRow, col: fromCol },
+            to: { row: toRow, col: toCol }
+        };
 
         this.history.push({ from: { r: fromRow, c: fromCol }, to: { r: toRow, c: toCol }, piece: piece, promotion: promotionType });
 

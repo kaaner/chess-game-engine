@@ -353,6 +353,28 @@ export default class ChessView {
                 }
             }
         }
+        
+        // Update visual feedback indicators
+        this.highlightLastMove();
+    }
+
+    /**
+     * Highlight the last move made (source and destination squares)
+     */
+    highlightLastMove() {
+        // Clear all previous last-move highlights
+        this.squares.forEach(row => {
+            row.forEach(square => {
+                square.classList.remove('last-move-from', 'last-move-to');
+            });
+        });
+
+        // Highlight new last move if exists
+        if (this.gameState.lastMove) {
+            const { from, to } = this.gameState.lastMove;
+            this.squares[from.row][from.col].classList.add('last-move-from');
+            this.squares[to.row][to.col].classList.add('last-move-to');
+        }
     }
 
     showPromotionDialog(fromRow, fromCol, toRow, toCol) {
