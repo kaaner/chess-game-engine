@@ -38,6 +38,22 @@ export default defineConfig({
     assetsInlineLimit: 4096, // Inline assets smaller than 4kb
   },
   
+  // Test configuration
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './tests/setup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      exclude: [
+        'node_modules/',
+        'tests/',
+        '*.config.js',
+      ]
+    }
+  },
+  
   // Preview server config
   preview: {
     port: 5173,
