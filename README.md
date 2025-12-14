@@ -1,6 +1,6 @@
 <h1 align="center">
   <br>
-  <a href="http://localhost:5173"><img src="https://raw.githubusercontent.com/kaaner/chess-game-engine/master/public/chess-icon.png" alt="Chess Game Engine" width="200"></a>
+  <a href="http://localhost:5173"><img src="public/chess-icon.svg" alt="Chess Game Engine" width="200"></a>
   <br>
   Chess Game Engine
   <br>
